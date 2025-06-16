@@ -11,23 +11,35 @@ app.use(express.json());
 
 app.get("/", (req, res) => res.send("API Running"));
 
-const PORT = process.env.PORT || 5000;
-
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 
 const taskRoutes = require("./routes/taskRoutes");
 app.use("/api/tasks", taskRoutes);
 
+const initialPort = process.env.PORT || 5000;
 
+// MongoDB Connection
 mongoose
-    .connect(process.env.MONGO_URI)
-    .then(() => {
-        console.log("MongoDB connected successfully")
-        app.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
-        });
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected successfully");
+    startServer(initialPort); // Start server after DB connects
+  })
+  .catch((err) => console.error("Mongo error: ", err));
+
+// Auto port retry function
+function startServer(port) {
+  const server = app
+    .listen(port, () => {
+      console.log(`Server is running on http://localhost:${port}`);
     })
-    .catch((err) => console.error("Mongo error: ", err));
-
-
+    .on("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        console.warn(`Port ${port} in use. Trying ${port + 1}...`);
+        startServer(port + 1);
+      } else {
+        console.error("Server error:", err);
+      }
+    });
+}
