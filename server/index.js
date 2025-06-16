@@ -16,14 +16,18 @@ const PORT = process.env.PORT || 5000;
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 
+const taskRoutes = require("./routes/taskRoutes");
+app.use("/api/tasks", taskRoutes);
+
+
 mongoose
     .connect(process.env.MONGO_URI)
     .then(() => {
+        console.log("MongoDB connected successfully")
         app.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT}`);
         });
     })
     .catch((err) => console.error("Mongo error: ", err));
 
-const authRoutes = require("./routes/authRoutes");
-app.use("/api/auth", authRoutes);
+
